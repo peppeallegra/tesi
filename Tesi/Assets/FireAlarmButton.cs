@@ -1,9 +1,12 @@
 using UnityEngine;
+using System;
 
 public class FireAlarmButton : MonoBehaviour
 {
     public AudioSource alarmSound;
     private bool isActivated = false;
+
+    public static event Action<bool> OnAlarmTriggered; // Evento per notificare l'attivazione dell'allarme
 
     private void Start()
     {
@@ -15,7 +18,7 @@ public class FireAlarmButton : MonoBehaviour
 
     public void ToggleAlarm()
     {
-        Debug.Log("🔴 Pulsante premuto! Interazione avvenuta."); // Messaggio di debug
+        Debug.Log("🔴 Pulsante premuto! Interazione avvenuta."); 
 
         if (alarmSound == null) return;
 
@@ -31,5 +34,8 @@ public class FireAlarmButton : MonoBehaviour
             Debug.Log("🔕 Allarme DISATTIVATO!");
             alarmSound.Stop();
         }
+
+        // Notifica tutti gli NPC dell'attivazione/disattivazione dell'allarme
+        OnAlarmTriggered?.Invoke(isActivated);
     }
 }
