@@ -1,32 +1,47 @@
 using UnityEngine;
+using System.Collections;
 
 public class FireController : MonoBehaviour
 {
-    public ParticleSystem fireParticles;
-    public float extinguishTime = 3f; // Tempo necessario per spegnere il fuoco
-    private float extinguishProgress = 0f;
+    [SerializeField] private ParticleSystem fireParticles;
+    [SerializeField] private float extinguishTime = 3f;
+    private Coroutine extinguishRoutine;
 
-    void Start()
+    void Awake()
     {
-        if (fireParticles == null)
+        if (!fireParticles)
             fireParticles = GetComponent<ParticleSystem>();
     }
 
-    void OnTriggerStay(Collider other)
+    void OnTriggerEnter(Collider other)
     {
-        Debug.Log("🔥 Il fuoco è colpito da: " + other.gameObject.name + " | Tag: " + other.tag);
-
-        if (other.CompareTag("Foam")) 
+        if (other.CompareTag("Foam") && extinguishRoutine == null)
         {
-            Debug.Log("✅ Schiuma rilevata! Progresso spegnimento: " + extinguishProgress + "/" + extinguishTime);
-            extinguishProgress += Time.deltaTime; // Aumenta il timer ogni secondo
-
-            if (extinguishProgress >= extinguishTime)
-            {
-                Debug.Log("🔥 Fuoco spento!");
-                fireParticles.Stop(); // Ferma le fiamme
-                gameObject.SetActive(false); // Disattiva l'oggetto
-            }
+            extinguishRoutine = StartCoroutine(ExtinguishFire());
         }
+    }
+
+    void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("Foam") && extinguishRoutine != null)
+        {
+            StopCoroutine(extinguishRoutine);
+            extinguishRoutine = null;
+        }
+    }
+
+    private IEnumerator ExtinguishFire()
+    {
+        if (fireParticles.isStopped) yield break;  // Evita riattivazioni
+
+        float elapsed = 0f;
+        while (elapsed < extinguishTime)
+        {
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        fireParticles.Stop();
+        gameObject.SetActive(false);
     }
 }

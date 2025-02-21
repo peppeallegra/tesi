@@ -3,39 +3,23 @@ using System;
 
 public class FireAlarmButton : MonoBehaviour
 {
-    public AudioSource alarmSound;
+    [SerializeField] private AudioSource alarmSound;
     private bool isActivated = false;
+    public static event Action<bool> OnAlarmTriggered;
 
-    public static event Action<bool> OnAlarmTriggered; // Evento per notificare l'attivazione dell'allarme
-
-    private void Start()
+    void Awake()
     {
-        if (alarmSound != null)
-        {
-            alarmSound.Stop();
-        }
+        if (alarmSound) alarmSound.Stop();
     }
 
     public void ToggleAlarm()
     {
-        Debug.Log("🔴 Pulsante premuto! Interazione avvenuta."); 
-
-        if (alarmSound == null) return;
+        if (!alarmSound) return;
 
         isActivated = !isActivated;
+        if (isActivated) alarmSound.Play();
+        else alarmSound.Stop();
 
-        if (isActivated)
-        {
-            Debug.Log("🚨 Allarme ATTIVATO!");
-            alarmSound.Play();
-        }
-        else
-        {
-            Debug.Log("🔕 Allarme DISATTIVATO!");
-            alarmSound.Stop();
-        }
-
-        // Notifica tutti gli NPC dell'attivazione/disattivazione dell'allarme
         OnAlarmTriggered?.Invoke(isActivated);
     }
 }

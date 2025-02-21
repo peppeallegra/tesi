@@ -1,59 +1,85 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AI; // Necessario per il NavMesh
+using UnityEngine.AI;
 
-public class RandomMovement : MonoBehaviour 
+public class RandomMovement : MonoBehaviour
 {
-    public NavMeshAgent agent;
-    public float range = 5.0f; // Raggio dell'area in cui può muoversi
-    public Transform centrePoint; // Centro dell'area di movimento
-    public Transform evacuationPoint; // Punto di raccolta
+    private NavMeshAgent agent;
+    private Animator animator;
 
-    private bool isEvacuating = false; // Controlla se è in evacuazione
+    [SerializeField] private float range = 5.0f;
+    [SerializeField] private Transform centrePoint;
+    [SerializeField] private Transform evacuationPoint;
 
-    void Start()
+    private bool isEvacuating = false;
+    private Vector3 lastRandomPoint;
+    private bool hasValidPoint = false;
+
+    void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
+        animator = GetComponent<Animator>();
 
-        if (agent == null)
-        {
-            Debug.LogError("NavMeshAgent non trovato sul GameObject " + gameObject.name);
-        }
-        
-        // Iscriviamo questo NPC all'evento dell'allarme
+        if (!agent) Debug.LogError($"NavMeshAgent non trovato su {gameObject.name}");
+        if (!animator) Debug.LogError($"Animator non trovato su {gameObject.name}");
+    }
+
+    void OnEnable()
+    {
         FireAlarmButton.OnAlarmTriggered += HandleAlarm;
+    }
+
+    void OnDisable()
+    {
+        FireAlarmButton.OnAlarmTriggered -= HandleAlarm;
     }
 
     void Update()
     {
-        if (isEvacuating) return; // Se è in evacuazione, non muoversi casualmente
-
-        if (agent.pathPending) return;
-
-        if (agent.remainingDistance <= agent.stoppingDistance || agent.remainingDistance < 1.0f) 
+        if (isEvacuating)
         {
-            Vector3 point;
-            if (RandomPoint(centrePoint.position, range, out point))
+            if (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance)
             {
-                if (Vector3.Distance(agent.transform.position, point) > 2.0f) 
-                {
-                    agent.SetDestination(point);
-                }
+                StopAgent();
             }
+            return;
+        }
+
+        if (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance)
+        {
+            MoveToRandomPoint();
         }
     }
 
-    // Funzione per trovare un punto casuale sulla NavMesh
-    bool RandomPoint(Vector3 center, float range, out Vector3 result)
+    private void StopAgent()
     {
-        for (int i = 0; i < 10; i++) 
+        agent.isStopped = true;
+        agent.velocity = Vector3.zero;
+        animator.SetBool("isWalking", false);
+    }
+
+    private void MoveToRandomPoint()
+    {
+        if (!hasValidPoint || Random.value < 0.1f) // Solo 10% di possibilità di ricalcolare
+        {
+            hasValidPoint = RandomPoint(centrePoint.position, range, out lastRandomPoint);
+        }
+
+        if (hasValidPoint)
+        {
+            agent.SetDestination(lastRandomPoint);
+            animator.SetBool("isWalking", true);
+        }
+    }
+
+    private bool RandomPoint(Vector3 center, float range, out Vector3 result)
+    {
+        for (int i = 0; i < 10; i++)
         {
             Vector3 randomPoint = center + Random.insideUnitSphere * range;
             randomPoint.y = center.y;
 
-            NavMeshHit hit;
-            if (NavMesh.SamplePosition(randomPoint, out hit, 2.0f, NavMesh.AllAreas)) 
+            if (NavMesh.SamplePosition(randomPoint, out NavMeshHit hit, 2.0f, NavMesh.AllAreas))
             {
                 result = hit.position;
                 return true;
@@ -63,24 +89,13 @@ public class RandomMovement : MonoBehaviour
         return false;
     }
 
-    // Gestisce l'attivazione dell'allarme
-    void HandleAlarm(bool alarmActive)
+    private void HandleAlarm(bool alarmActive)
     {
-        if (alarmActive)
+        isEvacuating = alarmActive;
+        if (isEvacuating)
         {
-            isEvacuating = true;
             agent.SetDestination(evacuationPoint.position);
-            Debug.Log(gameObject.name + " si sta dirigendo verso il punto di raccolta!");
+            animator.SetBool("isWalking", true);
         }
-        else
-        {
-            isEvacuating = false;
-        }
-    }
-
-    private void OnDestroy()
-    {
-        // Disiscriviamo l'NPC dall'evento quando viene distrutto
-        FireAlarmButton.OnAlarmTriggered -= HandleAlarm;
     }
 }

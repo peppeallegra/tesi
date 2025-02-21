@@ -1,1 +1,5 @@
 *.fbx filter=lfs diff=lfs merge=lfs -text
+Prova/prova_benchmark.data filter=lfs diff=lfs merge=lfs -text
+Prova/prova_benchmark2.data filter=lfs diff=lfs merge=lfs -text
+Prova/prova_benchmark3.data filter=lfs diff=lfs merge=lfs -text
+Prova/Tesi_Data/level0 filter=lfs diff=lfs merge=lfs -text

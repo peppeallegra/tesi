@@ -7,7 +7,7 @@ public class DebugRayInteractor : MonoBehaviour
 
     void Update()
     {
-        if (rayInteractor != null)
+        if (rayInteractor != null && Application.isEditor)
         {
             if (rayInteractor.TryGetCurrent3DRaycastHit(out RaycastHit hit))
             {
