@@ -6,6 +6,12 @@ public class FireController : MonoBehaviour
     [SerializeField] private ParticleSystem fireParticles;
     [SerializeField] private float extinguishTime = 3f;
     private Coroutine extinguishRoutine;
+    
+    // Aggiungiamo questa variabile per sapere se il fuoco è stato estinto
+    private bool isExtinguished = false;
+
+    // Proprietà pubblica (solo lettura) per permettere ad altri script di controllare se il fuoco è spento
+    public bool IsExtinguished => isExtinguished;
 
     void Awake()
     {
@@ -15,7 +21,7 @@ public class FireController : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Foam") && extinguishRoutine == null)
+        if (other.CompareTag("Foam") && extinguishRoutine == null && !isExtinguished)
         {
             extinguishRoutine = StartCoroutine(ExtinguishFire());
         }
@@ -32,7 +38,7 @@ public class FireController : MonoBehaviour
 
     private IEnumerator ExtinguishFire()
     {
-        if (fireParticles.isStopped) yield break;  // Evita riattivazioni
+        if (fireParticles.isStopped) yield break;  // Già estinto
 
         float elapsed = 0f;
         while (elapsed < extinguishTime)
@@ -41,7 +47,9 @@ public class FireController : MonoBehaviour
             yield return null;
         }
 
+        // Fuoco estinto
         fireParticles.Stop();
         gameObject.SetActive(false);
+        isExtinguished = true;
     }
 }
