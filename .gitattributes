@@ -3,5 +3,9 @@ Prova/prova_benchmark.data filter=lfs diff=lfs merge=lfs -text
 Prova/prova_benchmark2.data filter=lfs diff=lfs merge=lfs -text
 Prova/prova_benchmark3.data filter=lfs diff=lfs merge=lfs -text
 Prova/Tesi_Data/level0 filter=lfs diff=lfs merge=lfs -text
+Tesi/tesi_allegra.apk filter=lfs diff=lfs merge=lfs -text
+Prova/benchmark_avvio_pc.data filter=lfs diff=lfs merge=lfs -text
+Prova/benchmark_picchi_allarme.data filter=lfs diff=lfs merge=lfs -text
+Prova/benchmark_picchi_estintore.data filter=lfs diff=lfs merge=lfs -text
 *.apk filter=lfs diff=lfs merge=lfs -text
 *.data filter=lfs diff=lfs merge=lfs -text
